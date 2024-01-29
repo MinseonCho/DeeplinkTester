@@ -21,10 +21,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun UrlFieldWithSendButton(
-    defaultUrl: String,
+    url: String,
     onUrlChanged: (String) -> Unit,
+    onSendButtonClicked: () -> Unit
 ) {
-    var urlText by remember { mutableStateOf(defaultUrl) }
+    var urlText by remember { mutableStateOf(url) }
 
     Row {
         OutlinedTextField(
@@ -36,7 +37,7 @@ fun UrlFieldWithSendButton(
                 urlText = it
                 onUrlChanged(it)
             },
-            label = { Text(text = "URL ") }
+            label = { Text(text = "URL") }
         )
 
         IconButton(
@@ -44,6 +45,7 @@ fun UrlFieldWithSendButton(
                 .align(Alignment.CenterVertically)
                 .weight(10f, fill = true),
             onClick = {
+                onSendButtonClicked()
             },
             content = {
                 Icon(

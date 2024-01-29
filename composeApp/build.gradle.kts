@@ -35,6 +35,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -43,6 +45,7 @@ kotlin {
             implementation(compose.ui)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
+            implementation(compose.runtime)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

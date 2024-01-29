@@ -3,6 +3,7 @@ package components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,11 +34,47 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import model.QueryItem
+import ui.page.PageViewModel
+
+@Composable
+fun PageScreen(
+    viewModel: PageViewModel
+) {
+    val url by viewModel.url.collectAsState()
+
+    Column {
+        UrlFieldWithSendButton(
+            url = url,
+            onUrlChanged = viewModel::onUrlChanged,
+            onSendButtonClicked = viewModel::onSendButtonClicked
+        )
+
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp, horizontal = 10.dp),
+            style = TextStyle(
+                color = Color.Gray,
+                fontWeight = FontWeight.Bold
+            ),
+            text = "Query Params"
+        )
+        HomeLazyColumn(
+            queries = listOf(
+                QueryItem(key = "deviceKey", value = "e-kejwndkfppqkk"),
+                QueryItem(key = "productIndex", value = 1),
+                QueryItem(key = "categoryIndex", value = 1002),
+                QueryItem(key = "", value = "")
+            )
+        )
+    }
+}
 
 @Composable
 fun HomeLazyColumn(

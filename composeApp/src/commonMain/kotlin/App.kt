@@ -8,10 +8,13 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import components.SinglePage
+import components.PageScreen
+import ui.page.PageViewModel
 
 @Composable
-fun App() {
+fun App(
+    pageViewModel: PageViewModel
+) {
     MaterialTheme {
         val scaffoldState: ScaffoldState = rememberScaffoldState()
         val snackBarHostState = remember { SnackbarHostState() }
@@ -21,7 +24,9 @@ fun App() {
             scaffoldState = scaffoldState,
             snackbarHost = { SnackbarHost(snackBarHostState) }
         ) {
-            SinglePage()
+            PageScreen(
+                viewModel = pageViewModel,
+            )
         }
     }
 }

@@ -15,13 +15,14 @@ class PageViewModel : BaseViewModel() {
 
     val urlUiState: MutableStateFlow<String> = MutableStateFlow("")
 
-    private val _queryUiState: MutableStateFlow<QueryUiState> = MutableStateFlow(QueryUiState.Loading)
+    private val _queryUiState: MutableStateFlow<QueryUiState> =
+        MutableStateFlow(QueryUiState.Loading)
     val queryUiState: StateFlow<QueryUiState> = _queryUiState.asStateFlow()
 
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
 
-    private var queryMap : MutableMap<Int, QueryItem> = mutableMapOf()
+    private var queryMap: MutableMap<Int, QueryItem> = mutableMapOf()
 
     fun onUrlChanged(url: String) {
         this.urlUiState.value = url
@@ -60,23 +61,6 @@ class PageViewModel : BaseViewModel() {
         }
     }
 
-    private fun generateNewUrlWith(
-        originUrl: String,
-        newQueries: List<QueryItem>
-    ): String {
-        val newUrlBuilder = URLBuilder(originUrl)
-        // TODO: encode 고려 필요한지 체크
-        newUrlBuilder
-            .parameters
-            .clear()
-
-        newQueries.forEach { query ->
-            newUrlBuilder.parameters.append(query.key, query.value)
-        }
-
-        return newUrlBuilder.buildString()
-    }
-
     fun onQueryValueChanged(value: String, queryItem: QueryItem) {
         queryMap[queryItem.order] = queryItem.apply { this.value = value }
         _queryUiState.value = QueryUiState.Success(queryMap.values.toList())
@@ -95,6 +79,23 @@ class PageViewModel : BaseViewModel() {
             originUrl = urlUiState.value,
             newQueries = queryMap.values.toList()
         )
+    }
+
+    private fun generateNewUrlWith(
+        originUrl: String,
+        newQueries: List<QueryItem>
+    ): String {
+        val newUrlBuilder = URLBuilder(originUrl)
+        // TODO: encode 고려 필요한지 체크
+        newUrlBuilder
+            .parameters
+            .clear()
+
+        newQueries.forEach { query ->
+            newUrlBuilder.parameters.append(query.key, query.value)
+        }
+
+        return newUrlBuilder.buildString()
     }
 
     private fun parseQueryParameters(url: String): List<QueryItem> {

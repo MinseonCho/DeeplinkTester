@@ -1,4 +1,4 @@
-package components
+package ui.page
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -9,10 +9,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,16 +21,14 @@ fun UrlFieldWithSendButton(
     onUrlChanged: (String) -> Unit,
     onSendButtonClicked: () -> Unit
 ) {
-    var urlText by remember { mutableStateOf(url) }
 
     Row {
         OutlinedTextField(
             modifier = Modifier
                 .padding(10.dp)
                 .weight(90f, fill = true),
-            value = urlText,
+            value = url,
             onValueChange = {
-                urlText = it
                 onUrlChanged(it)
             },
             label = { Text(text = "URL") }
@@ -54,7 +48,7 @@ fun UrlFieldWithSendButton(
                     tint = Color(0xff8AB3FC)
                 )
             },
-            enabled = urlText.isNotBlank()
+            enabled = url.isNotBlank()
         )
     }
 }

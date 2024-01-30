@@ -1,6 +1,7 @@
-package components
+package ui.page
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,17 +13,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Checkbox
 import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,57 +47,94 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import model.QueryItem
-import ui.page.PageViewModel
 
 @Composable
 fun PageScreen(
-    viewModel: PageViewModel
+    pageViewModel: PageViewModel
 ) {
-    val url by viewModel.url.collectAsState()
+    val url by pageViewModel.urlUiState.collectAsState()
+    val queryUiState by pageViewModel.queryUiState.collectAsState()
 
-    Column {
-        UrlFieldWithSendButton(
-            url = url,
-            onUrlChanged = viewModel::onUrlChanged,
-            onSendButtonClicked = viewModel::onSendButtonClicked
-        )
+    val scaffoldState: ScaffoldState = rememberScaffoldState()
+    val snackBarHostState = remember { SnackbarHostState() }
 
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 10.dp),
-            style = TextStyle(
-                color = Color.Gray,
-                fontWeight = FontWeight.Bold
-            ),
-            text = "Query Params"
-        )
-        HomeLazyColumn(
-            queries = listOf(
-                QueryItem(key = "deviceKey", value = "e-kejwndkfppqkk"),
-                QueryItem(key = "productIndex", value = 1),
-                QueryItem(key = "categoryIndex", value = 1002),
-                QueryItem(key = "", value = "")
+    Scaffold(
+        modifier = Modifier.fillMaxWidth(),
+        scaffoldState = scaffoldState,
+        snackbarHost = { SnackbarHost(snackBarHostState) }
+    ) {
+        Column {
+            UrlFieldWithSendButton(
+                url = url,
+                onUrlChanged = pageViewModel::onUrlChanged,
+                onSendButtonClicked = pageViewModel::onSendButtonClicked
             )
-        )
+
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp, horizontal = 10.dp),
+                style = TextStyle(
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Bold
+                ),
+                text = "Query Params" // TODO: string resource 로 분리
+            )
+
+            QueryContent(
+                uiState = queryUiState,
+                onKeyChanged = pageViewModel::onQueryKeyChanged,
+                onValueChanged = pageViewModel::onQueryValueChanged,
+                onAddButtonClicked = pageViewModel::onAddButtonClicked
+            )
+        }
     }
 }
 
 @Composable
-fun HomeLazyColumn(
-    queries: List<QueryItem>
+fun QueryContent(
+    uiState: QueryUiState,
+    onKeyChanged: (String, QueryItem) -> Unit,
+    onValueChanged: (String, QueryItem) -> Unit,
+    onAddButtonClicked: () -> Unit
 ) {
+    when (uiState) {
+        is QueryUiState.Success -> {
+            QueryList(
+                queries = uiState.queries,
+                onKeyChanged = onKeyChanged,
+                onValueChanged = onValueChanged,
+                onAddButtonClicked = onAddButtonClicked
+            )
+        }
+
+        QueryUiState.Loading,
+        QueryUiState.Error -> Unit
+    }
+}
+
+@Composable
+fun QueryList(
+    queries: List<QueryItem>,
+    onKeyChanged: (String, QueryItem) -> Unit,
+    onValueChanged: (String, QueryItem) -> Unit,
+    onAddButtonClicked: () -> Unit
+) {
+    val listState = rememberLazyListState()
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        state = listState
     ) {
         items(queries) { query ->
             SingleQueryParam(
-                key = query.key,
-                value = query.value
-            ) { isChecked ->
-                println("mscho, queryName: ${query.key}, isChecked: $isChecked")
-            }
+                queryItem = query,
+                onCheckBoxClicked = { isChecked ->
+                    println("mscho, queryName: ${query.key}, isChecked: $isChecked")
+                },
+                onKeyChanged = onKeyChanged,
+                onValueChanged = onValueChanged
+            )
         }
     }
 
@@ -98,7 +142,9 @@ fun HomeLazyColumn(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
-        onQueryAddButtonClicked = {}
+        onQueryAddButtonClicked = {
+            onAddButtonClicked()
+        }
     )
 }
 
@@ -122,9 +168,10 @@ fun QueryAddButton(
 
 @Composable
 fun SingleQueryParam(
-    key: String,
-    value: Any,
-    onCheckBoxClicked: (Boolean) -> Unit
+    queryItem: QueryItem,
+    onCheckBoxClicked: (Boolean) -> Unit,
+    onKeyChanged: (String, QueryItem) -> Unit,
+    onValueChanged: (String, QueryItem) -> Unit
 ) {
     var checked by rememberSaveable { mutableStateOf(true) }
 
@@ -136,7 +183,10 @@ fun SingleQueryParam(
         ) {
             Checkbox(
                 modifier = Modifier
-                    .weight(weight = 10f, fill = true),
+                    .weight(weight = 10f, fill = true)
+                    .clickable {
+
+                    },
                 checked = checked,
                 colors = CheckboxDefaults.colors(
                     checkedColor = Color(0xffd8e6ff),
@@ -149,9 +199,9 @@ fun SingleQueryParam(
             )
 
             QueryInputField(
-                text = key,
+                text = queryItem.key,
                 onValueChanged = {
-
+                    onKeyChanged(it, queryItem)
                 },
                 modifier = Modifier
                     .padding(end = 10.dp)
@@ -160,9 +210,9 @@ fun SingleQueryParam(
             )
 
             QueryInputField(
-                text = value.toString(),
+                text = queryItem.value,
                 onValueChanged = {
-
+                    onValueChanged(it, queryItem)
                 },
                 modifier = Modifier
                     .weight(weight = 55f, fill = true)
@@ -179,13 +229,11 @@ fun QueryInputField(
     onValueChanged: (String) -> Unit,
     modifier: Modifier
 ) {
-    var inputText by remember { mutableStateOf(text) }
     val interactionSource = remember { MutableInteractionSource() }
 
     BasicTextField(
-        value = inputText,
+        value = text,
         onValueChange = {
-            inputText = it
             onValueChanged(it)
         },
         modifier = modifier.then(
@@ -198,7 +246,7 @@ fun QueryInputField(
         textStyle = TextStyle(fontSize = TextUnit(11f, TextUnitType.Sp)),
     ) { innerTextField ->
         TextFieldDefaults.TextFieldDecorationBox(
-            value = inputText,
+            value = text,
             innerTextField = innerTextField,
             contentPadding = PaddingValues(5.dp),
             singleLine = true,

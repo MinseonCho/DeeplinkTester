@@ -1,6 +1,7 @@
 package model
 
 data class QueryItem(
-    val key: String,
-    val value: Any
+    val order: Int,
+    var key: String,
+    var value: String
 )

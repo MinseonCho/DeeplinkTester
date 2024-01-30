@@ -6,6 +6,7 @@ import androidx.compose.ui.window.application
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ui.page.PageEvent
+import ui.page.PageScreen
 import ui.page.PageViewModel
 
 fun main() = application {
@@ -24,9 +25,11 @@ fun main() = application {
             }
         }
 
-        App(
-            pageViewModel = viewModel
-        )
+        MaterialTheme {
+            PageScreen(
+                pageViewModel = viewModel
+            )
+        }
     }
 }
 

@@ -1,17 +1,16 @@
 package org.example.project
 
-import App
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ui.page.PageEvent
+import ui.page.PageScreen
 import ui.page.PageViewModel
 
 class MainActivity : ComponentActivity() {
@@ -21,7 +20,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: PageViewModel = viewModel()
 
-            App(
+            PageScreen(
                 pageViewModel = viewModel
             )
 

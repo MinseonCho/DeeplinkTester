@@ -35,7 +35,14 @@ class PageViewModel : BaseViewModel() {
     }
 
     fun onAddButtonClicked() {
-        // TODO: 구현 필요
+        val queryItem = QueryItem(
+            order = queryMap.count(),
+            key = "",
+            value = ""
+        )
+
+        queryMap[queryItem.order] = queryItem
+        _queryUiState.value = QueryUiState.Success(queryMap.values.toList())
     }
 
     private fun parseUrlAndUpdateState(url: String) {

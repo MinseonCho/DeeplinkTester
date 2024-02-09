@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -94,8 +94,8 @@ fun PageScreen(
 @Composable
 fun QueryContent(
     uiState: QueryUiState,
-    onKeyChanged: (String, QueryItem) -> Unit,
-    onValueChanged: (String, QueryItem) -> Unit,
+    onKeyChanged: (Int, String) -> Unit,
+    onValueChanged: (Int, String) -> Unit,
     onAddButtonClicked: () -> Unit
 ) {
     when (uiState) {
@@ -116,8 +116,8 @@ fun QueryContent(
 @Composable
 fun QueryList(
     queries: List<QueryItem>,
-    onKeyChanged: (String, QueryItem) -> Unit,
-    onValueChanged: (String, QueryItem) -> Unit,
+    onKeyChanged: (Int, String) -> Unit,
+    onValueChanged: (Int, String) -> Unit,
     onAddButtonClicked: () -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -126,10 +126,11 @@ fun QueryList(
         verticalArrangement = Arrangement.spacedBy(5.dp),
         state = listState
     ) {
-        items(queries) { query ->
+        itemsIndexed(queries) { index, query ->
             SingleQueryParam(
+                position = index,
                 queryItem = query,
-                onCheckBoxClicked = { isChecked ->
+                onCheckBoxClicked = { position, isChecked ->
                     println("mscho, queryName: ${query.key}, isChecked: $isChecked")
                 },
                 onKeyChanged = onKeyChanged,
@@ -168,10 +169,11 @@ fun QueryAddButton(
 
 @Composable
 fun SingleQueryParam(
+    position: Int,
     queryItem: QueryItem,
-    onCheckBoxClicked: (Boolean) -> Unit,
-    onKeyChanged: (String, QueryItem) -> Unit,
-    onValueChanged: (String, QueryItem) -> Unit
+    onCheckBoxClicked: (Int, Boolean) -> Unit,
+    onKeyChanged: (Int, String) -> Unit,
+    onValueChanged: (Int, String) -> Unit
 ) {
     var checked by rememberSaveable { mutableStateOf(true) }
 
@@ -193,7 +195,7 @@ fun SingleQueryParam(
                     uncheckedColor = Color(0xffd8e6ff)
                 ),
                 onCheckedChange = { isChecked ->
-                    onCheckBoxClicked(isChecked)
+                    onCheckBoxClicked(position, isChecked)
                     checked = isChecked
                 }
             )
@@ -201,7 +203,7 @@ fun SingleQueryParam(
             QueryInputField(
                 text = queryItem.key,
                 onValueChanged = {
-                    onKeyChanged(it, queryItem)
+                    onKeyChanged(position, it)
                 },
                 modifier = Modifier
                     .padding(end = 10.dp)
@@ -212,7 +214,7 @@ fun SingleQueryParam(
             QueryInputField(
                 text = queryItem.value,
                 onValueChanged = {
-                    onValueChanged(it, queryItem)
+                    onValueChanged(position, it)
                 },
                 modifier = Modifier
                     .weight(weight = 55f, fill = true)

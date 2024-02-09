@@ -1,5 +1,7 @@
 package ui.page
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import base.BaseViewModel
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.channels.Channel
@@ -10,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import model.QueryItem
+import util.clearAndAddAll
 
 class PageViewModel : BaseViewModel() {
 
@@ -22,7 +25,7 @@ class PageViewModel : BaseViewModel() {
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
 
-    private var queryMap: MutableMap<Int, QueryItem> = mutableMapOf()
+    private val queryList: SnapshotStateList<QueryItem> = mutableStateListOf()
 
     fun onUrlChanged(url: String) {
         this.urlUiState.value = url
@@ -36,14 +39,12 @@ class PageViewModel : BaseViewModel() {
     }
 
     fun onAddButtonClicked() {
-        val queryItem = QueryItem(
-            order = queryMap.count(),
-            key = "",
-            value = ""
+        queryList.add(
+            QueryItem(
+                key = "", value = ""
+            )
         )
-
-        queryMap[queryItem.order] = queryItem
-        _queryUiState.value = QueryUiState.Success(queryMap.values.toList())
+        _queryUiState.value = QueryUiState.Success(queryList)
     }
 
     private fun parseUrlAndUpdateState(url: String) {
@@ -52,8 +53,7 @@ class PageViewModel : BaseViewModel() {
                 parseQueryParameters(url)
             }.onSuccess { queries ->
                 println("mscho, queries: $queries")
-                queryMap.clear()
-                queryMap.putAll(queries.associateBy { it.order })
+                queryList.clearAndAddAll(queries)
                 _queryUiState.value = QueryUiState.Success(queries)
             }.onFailure {
                 _queryUiState.value = QueryUiState.Error
@@ -61,23 +61,27 @@ class PageViewModel : BaseViewModel() {
         }
     }
 
-    fun onQueryValueChanged(value: String, queryItem: QueryItem) {
-        queryMap[queryItem.order] = queryItem.apply { this.value = value }
-        _queryUiState.value = QueryUiState.Success(queryMap.values.toList())
+    fun onQueryValueChanged(position: Int, value: String) {
+        queryList.getOrNull(position)?.let {
+            it.value = value
+        } ?: return
+        _queryUiState.value = QueryUiState.Success(queryList)
 
         urlUiState.value = generateNewUrlWith(
             originUrl = urlUiState.value,
-            newQueries = queryMap.values.toList()
+            newQueries = queryList
         )
     }
 
-    fun onQueryKeyChanged(key: String, queryItem: QueryItem) {
-        queryMap[queryItem.order] = queryItem.apply { this.key = key }
-        _queryUiState.value = QueryUiState.Success(queryMap.values.toList())
+    fun onQueryKeyChanged(position: Int, key: String) {
+        queryList.getOrNull(position)?.let {
+            it.key = key
+        } ?: return
+        _queryUiState.value = QueryUiState.Success(queryList)
 
         urlUiState.value = generateNewUrlWith(
             originUrl = urlUiState.value,
-            newQueries = queryMap.values.toList()
+            newQueries = queryList
         )
     }
 
@@ -116,12 +120,11 @@ class PageViewModel : BaseViewModel() {
         }
 
         return queryString.split("&")
-            .mapIndexed { index, param ->
+            .map { param ->
                 val parts = param.split("=")
                 val key = parts.getOrNull(0).orEmpty()
                 val value = parts.getOrNull(1).orEmpty()
                 QueryItem(
-                    order = index,
                     key = key,
                     value = value
                 )

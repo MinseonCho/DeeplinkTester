@@ -7,8 +7,6 @@ import io.ktor.http.URLBuilder
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import model.QueryItem
@@ -18,14 +16,11 @@ class PageViewModel : BaseViewModel() {
 
     val urlUiState: MutableStateFlow<String> = MutableStateFlow("")
 
-    private val _queryUiState: MutableStateFlow<QueryUiState> =
-        MutableStateFlow(QueryUiState.Loading)
-    val queryUiState: StateFlow<QueryUiState> = _queryUiState.asStateFlow()
-
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
 
-    private val queryList: SnapshotStateList<QueryItem> = mutableStateListOf()
+    private val _queryList: SnapshotStateList<QueryItem> = mutableStateListOf()
+    val queryList: List<QueryItem> = _queryList
 
     fun onUrlChanged(url: String) {
         this.urlUiState.value = url
@@ -38,51 +33,54 @@ class PageViewModel : BaseViewModel() {
         }
     }
 
-    fun onAddButtonClicked() {
-        queryList.add(QueryItem(key = "", value = ""))
-        onQueryItemChanged(newQueries = queryList)
-    }
-
     private fun parseUrlAndUpdateState(url: String) {
-        viewModelScope.launch {
-            runCatching {
-                parseQueryParameters(url)
-            }.onSuccess { queries ->
-                println("mscho, queries: $queries")
-                queryList.clearAndAddAll(queries)
-                _queryUiState.value = QueryUiState.Success(queries)
-            }.onFailure {
-                _queryUiState.value = QueryUiState.Error
-            }
-        }
+        _queryList.clearAndAddAll(parseQueryParameters(url))
+        onQueryListRefreshed()
     }
 
     fun onCheckedChanged(position: Int, isChecked: Boolean) {
-        queryList.getOrNull(position)?.let {
-            it.isChecked = isChecked
-        } ?: return
-        onQueryItemChanged(newQueries = queryList)
+        if (_queryList.indices.contains(position).not()) return
+        _queryList[position].isChecked = isChecked
+
+        onQueryListItemChanged(
+            changedPosition = position
+        )
     }
 
     fun onQueryValueChanged(position: Int, value: String) {
-        queryList.getOrNull(position)?.let {
+        _queryList.getOrNull(position)?.let {
             it.value = value
+            it.isChecked = true
         } ?: return
-        onQueryItemChanged(newQueries = queryList)
+
+        onQueryListItemChanged(
+            changedPosition = position
+        )
     }
 
     fun onQueryKeyChanged(position: Int, key: String) {
-        queryList.getOrNull(position)?.let {
+        _queryList.getOrNull(position)?.let {
             it.key = key
+            it.isChecked = true
         } ?: return
-        onQueryItemChanged(newQueries = queryList)
+
+        onQueryListItemChanged(
+            changedPosition = position
+        )
     }
 
-    private fun onQueryItemChanged(newQueries: List<QueryItem>) {
-        _queryUiState.value = QueryUiState.Success(newQueries)
+    private fun onQueryListRefreshed() {
+        _queryList.add(QueryItem.generateEmptyQueryItem())
+    }
+
+    private fun onQueryListItemChanged(changedPosition: Int) {
+        if (changedPosition == _queryList.lastIndex) {
+            _queryList.add(QueryItem.generateEmptyQueryItem())
+        }
+
         urlUiState.value = generateNewUrlWith(
             originUrl = urlUiState.value,
-            newQueries = newQueries
+            newQueries = _queryList
         )
     }
 
@@ -131,10 +129,4 @@ class PageViewModel : BaseViewModel() {
                 )
             }
     }
-}
-
-sealed interface QueryUiState {
-    data class Success(val queries: List<QueryItem>) : QueryUiState
-    data object Error : QueryUiState
-    data object Loading : QueryUiState
 }

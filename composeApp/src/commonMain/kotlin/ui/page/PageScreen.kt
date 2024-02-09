@@ -177,8 +177,6 @@ fun SingleQueryParam(
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit
 ) {
-    var checked by rememberSaveable { mutableStateOf(true) }
-
     Surface {
         Row(
             modifier = Modifier
@@ -191,14 +189,13 @@ fun SingleQueryParam(
                     .clickable {
 
                     },
-                checked = checked,
+                checked = queryItem.isChecked,
                 colors = CheckboxDefaults.colors(
                     checkedColor = Color(0xffd8e6ff),
                     uncheckedColor = Color(0xffd8e6ff)
                 ),
                 onCheckedChange = { isChecked ->
                     onCheckedChanged(position, isChecked)
-                    checked = isChecked
                 }
             )
 

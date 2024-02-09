@@ -85,7 +85,8 @@ fun PageScreen(
                 uiState = queryUiState,
                 onKeyChanged = pageViewModel::onQueryKeyChanged,
                 onValueChanged = pageViewModel::onQueryValueChanged,
-                onAddButtonClicked = pageViewModel::onAddButtonClicked
+                onAddButtonClicked = pageViewModel::onAddButtonClicked,
+                onCheckedChanged = pageViewModel::onCheckedChanged
             )
         }
     }
@@ -96,7 +97,8 @@ fun QueryContent(
     uiState: QueryUiState,
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit,
-    onAddButtonClicked: () -> Unit
+    onAddButtonClicked: () -> Unit,
+    onCheckedChanged: (Int, Boolean) -> Unit
 ) {
     when (uiState) {
         is QueryUiState.Success -> {
@@ -104,7 +106,8 @@ fun QueryContent(
                 queries = uiState.queries,
                 onKeyChanged = onKeyChanged,
                 onValueChanged = onValueChanged,
-                onAddButtonClicked = onAddButtonClicked
+                onAddButtonClicked = onAddButtonClicked,
+                onCheckedChanged = onCheckedChanged
             )
         }
 
@@ -118,7 +121,8 @@ fun QueryList(
     queries: List<QueryItem>,
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit,
-    onAddButtonClicked: () -> Unit
+    onAddButtonClicked: () -> Unit,
+    onCheckedChanged: (Int, Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
@@ -130,9 +134,7 @@ fun QueryList(
             SingleQueryParam(
                 position = index,
                 queryItem = query,
-                onCheckBoxClicked = { position, isChecked ->
-                    println("mscho, queryName: ${query.key}, isChecked: $isChecked")
-                },
+                onCheckedChanged = onCheckedChanged,
                 onKeyChanged = onKeyChanged,
                 onValueChanged = onValueChanged
             )
@@ -171,7 +173,7 @@ fun QueryAddButton(
 fun SingleQueryParam(
     position: Int,
     queryItem: QueryItem,
-    onCheckBoxClicked: (Int, Boolean) -> Unit,
+    onCheckedChanged: (Int, Boolean) -> Unit,
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit
 ) {
@@ -195,7 +197,7 @@ fun SingleQueryParam(
                     uncheckedColor = Color(0xffd8e6ff)
                 ),
                 onCheckedChange = { isChecked ->
-                    onCheckBoxClicked(position, isChecked)
+                    onCheckedChanged(position, isChecked)
                     checked = isChecked
                 }
             )

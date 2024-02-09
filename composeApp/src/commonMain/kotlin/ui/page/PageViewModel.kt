@@ -39,12 +39,8 @@ class PageViewModel : BaseViewModel() {
     }
 
     fun onAddButtonClicked() {
-        queryList.add(
-            QueryItem(
-                key = "", value = ""
-            )
-        )
-        _queryUiState.value = QueryUiState.Success(queryList)
+        queryList.add(QueryItem(key = "", value = ""))
+        onQueryItemChanged(newQueries = queryList)
     }
 
     private fun parseUrlAndUpdateState(url: String) {
@@ -61,27 +57,32 @@ class PageViewModel : BaseViewModel() {
         }
     }
 
+    fun onCheckedChanged(position: Int, isChecked: Boolean) {
+        queryList.getOrNull(position)?.let {
+            it.isChecked = isChecked
+        } ?: return
+        onQueryItemChanged(newQueries = queryList)
+    }
+
     fun onQueryValueChanged(position: Int, value: String) {
         queryList.getOrNull(position)?.let {
             it.value = value
         } ?: return
-        _queryUiState.value = QueryUiState.Success(queryList)
-
-        urlUiState.value = generateNewUrlWith(
-            originUrl = urlUiState.value,
-            newQueries = queryList
-        )
+        onQueryItemChanged(newQueries = queryList)
     }
 
     fun onQueryKeyChanged(position: Int, key: String) {
         queryList.getOrNull(position)?.let {
             it.key = key
         } ?: return
-        _queryUiState.value = QueryUiState.Success(queryList)
+        onQueryItemChanged(newQueries = queryList)
+    }
 
+    private fun onQueryItemChanged(newQueries: List<QueryItem>) {
+        _queryUiState.value = QueryUiState.Success(newQueries)
         urlUiState.value = generateNewUrlWith(
             originUrl = urlUiState.value,
-            newQueries = queryList
+            newQueries = newQueries
         )
     }
 
@@ -95,7 +96,7 @@ class PageViewModel : BaseViewModel() {
             .parameters
             .clear()
 
-        newQueries.forEach { query ->
+        newQueries.filter { it.isChecked }.forEach { query ->
             newUrlBuilder.parameters.append(query.key, query.value)
         }
 

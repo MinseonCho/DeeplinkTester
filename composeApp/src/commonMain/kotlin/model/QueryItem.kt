@@ -1,9 +1,9 @@
 package model
 
 data class QueryItem(
-    var key: String,
-    var value: String,
-    var isChecked: Boolean = true
+    val key: String,
+    val value: String,
+    val isChecked: Boolean = true
 ) {
     companion object {
         fun generateEmptyQueryItem(): QueryItem = QueryItem(

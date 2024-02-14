@@ -47,6 +47,7 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.runtime)
             implementation(libs.ktor.client.core)
+            implementation(libs.kotlinx.collections.immutable)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

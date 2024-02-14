@@ -1,7 +1,5 @@
 package ui.page
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import base.BaseViewModel
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.channels.Channel
@@ -19,7 +17,7 @@ class PageViewModel : BaseViewModel() {
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
 
-    private val _queryList: SnapshotStateList<QueryItem> = mutableStateListOf()
+    private val _queryList: MutableList<QueryItem> = mutableListOf()
     val queryList: List<QueryItem> = _queryList
 
     fun onUrlChanged(url: String) {
@@ -40,7 +38,7 @@ class PageViewModel : BaseViewModel() {
 
     fun onCheckedChanged(position: Int, isChecked: Boolean) {
         if (_queryList.indices.contains(position).not()) return
-        _queryList[position].isChecked = isChecked
+        _queryList[position] = _queryList[position].copy(isChecked = isChecked)
 
         onQueryListItemChanged(
             changedPosition = position
@@ -48,10 +46,8 @@ class PageViewModel : BaseViewModel() {
     }
 
     fun onQueryValueChanged(position: Int, value: String) {
-        _queryList.getOrNull(position)?.let {
-            it.value = value
-            it.isChecked = true
-        } ?: return
+        if (_queryList.indices.contains(position).not()) return
+        _queryList[position] = _queryList[position].copy(value = value, isChecked = true)
 
         onQueryListItemChanged(
             changedPosition = position
@@ -59,10 +55,8 @@ class PageViewModel : BaseViewModel() {
     }
 
     fun onQueryKeyChanged(position: Int, key: String) {
-        _queryList.getOrNull(position)?.let {
-            it.key = key
-            it.isChecked = true
-        } ?: return
+        if (_queryList.indices.contains(position).not()) return
+        _queryList[position] = _queryList[position].copy(key = key, isChecked = true)
 
         onQueryListItemChanged(
             changedPosition = position

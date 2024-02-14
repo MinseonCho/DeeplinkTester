@@ -37,6 +37,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import model.QueryItem
 
 @Composable
@@ -72,7 +74,7 @@ fun PageScreen(
             )
 
             QueryContent(
-                queries = pageViewModel.queryList,
+                queries = pageViewModel.queryList.toImmutableList(),
                 onKeyChanged = pageViewModel::onQueryKeyChanged,
                 onValueChanged = pageViewModel::onQueryValueChanged,
                 onCheckedChanged = pageViewModel::onCheckedChanged
@@ -83,7 +85,7 @@ fun PageScreen(
 
 @Composable
 fun QueryContent(
-    queries: List<QueryItem>,
+    queries: ImmutableList<QueryItem>,
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit,
     onCheckedChanged: (Int, Boolean) -> Unit
@@ -98,7 +100,7 @@ fun QueryContent(
 
 @Composable
 fun QueryList(
-    queries: List<QueryItem>,
+    queries: ImmutableList<QueryItem>,
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit,
     onCheckedChanged: (Int, Boolean) -> Unit

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +18,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Checkbox
 import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.NavigationRail
+import androidx.compose.material.NavigationRailItem
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.SnackbarHost
@@ -27,7 +32,9 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +47,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import model.QueryItem
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
+import ui.NavRailItem
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PageScreen(
     pageViewModel: PageViewModel
@@ -50,35 +61,63 @@ fun PageScreen(
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-        modifier = Modifier.fillMaxWidth(),
-        scaffoldState = scaffoldState,
-        snackbarHost = { SnackbarHost(snackBarHostState) }
-    ) {
-        Column {
-            UrlFieldWithSendButton(
-                url = url,
-                onUrlChanged = pageViewModel::onUrlChanged,
-                onSendButtonClicked = pageViewModel::onSendButtonClicked
-            )
+    var selectedRailItem by remember { mutableIntStateOf(0) }
 
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp, horizontal = 10.dp),
-                style = TextStyle(
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Bold
-                ),
-                text = "Query Params" // TODO: string resource 로 분리
-            )
+    Row(
+        modifier = Modifier.fillMaxSize()
+    ){
+        NavigationRail(
+            contentColor = Color(0xFFF5F5F7)
+        ) {
+            Spacer(Modifier.weight(1f))
+            NavRailItem.entries.forEachIndexed { index, navRailItem ->
+                NavigationRailItem(
+                    icon = {
+                        Icon(
+                            painter = painterResource(navRailItem.iconRes),
+                            contentDescription = navRailItem.description,
+                            tint = Color(0xFF374957)
+                        )
+                    },
+                    label = null,
+                    selected = selectedRailItem == index,
+                    onClick = {
+                        selectedRailItem = index
+                        pageViewModel.onSettingsIconClicked()
+                    }
+                )
+            }
+        }
+        Scaffold(
+            modifier = Modifier,
+            scaffoldState = scaffoldState,
+            snackbarHost = { SnackbarHost(snackBarHostState) }
+        ) {
+            Column {
+                UrlFieldWithSendButton(
+                    url = url,
+                    onUrlChanged = pageViewModel::onUrlChanged,
+                    onSendButtonClicked = pageViewModel::onSendButtonClicked
+                )
 
-            QueryContent(
-                queries = pageViewModel.queryList.toImmutableList(),
-                onKeyChanged = pageViewModel::onQueryKeyChanged,
-                onValueChanged = pageViewModel::onQueryValueChanged,
-                onCheckedChanged = pageViewModel::onCheckedChanged
-            )
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp, horizontal = 10.dp),
+                    style = TextStyle(
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    text = "Query Params" // TODO: string resource 로 분리
+                )
+
+                QueryContent(
+                    queries = pageViewModel.queryList.toImmutableList(),
+                    onKeyChanged = pageViewModel::onQueryKeyChanged,
+                    onValueChanged = pageViewModel::onQueryValueChanged,
+                    onCheckedChanged = pageViewModel::onCheckedChanged
+                )
+            }
         }
     }
 }

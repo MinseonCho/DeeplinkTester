@@ -123,4 +123,8 @@ class PageViewModel : BaseViewModel() {
                 )
             }
     }
+
+    fun onSettingsIconClicked() {
+        // TODO: 설정 버튼 클릭 시 처리
+    }
 }

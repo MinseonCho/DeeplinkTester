@@ -64,9 +64,12 @@ fun PageScreen(
     var selectedRailItem by remember { mutableIntStateOf(0) }
 
     Row(
-        modifier = Modifier.fillMaxSize()
-    ){
+        modifier = Modifier
+            .background(Color(0xFFF5F5F7))
+            .fillMaxSize()
+    ) {
         NavigationRail(
+            backgroundColor = Color(0xFFF5F5F7),
             contentColor = Color(0xFFF5F5F7)
         ) {
             Spacer(Modifier.weight(1f))
@@ -89,16 +92,21 @@ fun PageScreen(
             }
         }
         Scaffold(
-            modifier = Modifier,
+            modifier = Modifier.fillMaxSize(),
             scaffoldState = scaffoldState,
             snackbarHost = { SnackbarHost(snackBarHostState) }
         ) {
-            Column {
-                UrlFieldWithSendButton(
-                    url = url,
-                    onUrlChanged = pageViewModel::onUrlChanged,
-                    onSendButtonClicked = pageViewModel::onSendButtonClicked
-                )
+            Column(
+                modifier = Modifier
+                    .background(Color(0xFFF5F5F7))
+                    .padding(top = 30.dp, end = 15.dp)
+            ) {
+
+                    UrlField(
+                        url = url,
+                        onUrlChanged = pageViewModel::onUrlChanged,
+                        onSendButtonClicked = pageViewModel::onSendButtonClicked
+                    )
 
                 Text(
                     modifier = Modifier

@@ -33,7 +33,7 @@ fun UrlField(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .padding(5.dp)
+            .padding(bottom = 5.dp)
             .background(
                 color = Color.White,
                 shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)

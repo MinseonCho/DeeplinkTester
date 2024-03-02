@@ -157,7 +157,7 @@ fun QueryContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        QueryList(
+        QueryTable(
             queries = queries,
             onKeyChanged = onKeyChanged,
             onValueChanged = onValueChanged,
@@ -167,7 +167,7 @@ fun QueryContent(
 }
 
 @Composable
-fun QueryList(
+fun QueryTable(
     queries: ImmutableList<QueryItem>,
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit,
@@ -187,7 +187,7 @@ fun QueryList(
         }
 
         itemsIndexed(queries) { index, query ->
-            SingleQueryParam(
+            SingleQuery(
                 position = index,
                 queryItem = query,
                 onCheckedChanged = onCheckedChanged,
@@ -247,7 +247,7 @@ fun QueryTableHeaderRow(
 }
 
 @Composable
-fun SingleQueryParam(
+fun SingleQuery(
     position: Int,
     queryItem: QueryItem,
     onCheckedChanged: (Int, Boolean) -> Unit,

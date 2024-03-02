@@ -181,6 +181,11 @@ fun QueryList(
             .border(width = 1.dp, color = ColorConstant._E8E8E8),
         state = listState
     ) {
+        item {
+            QueryTableHeaderRow()
+            Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
+        }
+
         itemsIndexed(queries) { index, query ->
             SingleQueryParam(
                 position = index,
@@ -193,6 +198,51 @@ fun QueryList(
                 Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
             }
         }
+    }
+}
+
+@Composable
+fun QueryTableHeaderRow(
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.height(IntrinsicSize.Min)
+    ) {
+        Checkbox(
+            modifier = Modifier.width(50.dp), // checkBox width 는 고정
+            checked = false,
+            enabled = false,
+            colors = CheckboxDefaults.colors(
+                disabledColor = ColorConstant._E8E8E8
+            ),
+            onCheckedChange = {}
+        )
+
+        TableVerticalDivider()
+
+        Text(
+            text = "Key",
+            modifier = Modifier
+                .padding(horizontal = 15.dp)
+                .weight(weight = 0.3f, fill = true)
+                .align(Alignment.CenterVertically),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = ColorConstant._848484
+        )
+
+        TableVerticalDivider()
+
+        Text(
+            text = "Value",
+            modifier = Modifier
+                .padding(horizontal = 15.dp)
+                .weight(weight = 0.7f, fill = true)
+                .align(Alignment.CenterVertically),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = ColorConstant._848484
+        )
     }
 }
 
@@ -210,8 +260,7 @@ fun SingleQueryParam(
             .height(IntrinsicSize.Min)
     ) {
         Checkbox(
-            modifier = Modifier
-                .width(50.dp), // checkBox width 는 고정
+            modifier = Modifier.width(50.dp), // checkBox width 는 고정
             checked = queryItem.isChecked,
             colors = CheckboxDefaults.colors(
                 checkedColor = ColorConstant._5A8CDD,
@@ -223,12 +272,7 @@ fun SingleQueryParam(
             }
         )
 
-        Divider(
-            color = ColorConstant._E8E8E8,
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(1.dp)
-        )
+        TableVerticalDivider()
 
         QueryInputField(
             text = queryItem.key,
@@ -241,12 +285,7 @@ fun SingleQueryParam(
                 .align(Alignment.CenterVertically)
         )
 
-        Divider(
-            color = ColorConstant._E8E8E8,
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(1.dp)
-        )
+        TableVerticalDivider()
 
         QueryInputField(
             text = queryItem.value,
@@ -259,6 +298,16 @@ fun SingleQueryParam(
                 .align(Alignment.CenterVertically)
         )
     }
+}
+
+@Composable
+private fun TableVerticalDivider() {
+    Divider(
+        color = ColorConstant._E8E8E8,
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(1.dp)
+    )
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -283,7 +332,10 @@ fun QueryInputField(
                 isFocused = it.isFocused
             },
         singleLine = true,
-        textStyle = TextStyle(fontSize = TextUnit(12f, TextUnitType.Sp)),
+        textStyle = TextStyle(
+            fontSize = TextUnit(12f, TextUnitType.Sp),
+            color = ColorConstant._848484
+        ),
     ) { innerTextField ->
         TextFieldDefaults.TextFieldDecorationBox(
             value = text,

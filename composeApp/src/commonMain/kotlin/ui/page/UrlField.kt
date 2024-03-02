@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,7 +61,10 @@ fun UrlField(
             value = url,
             onValueChange = {
                 onUrlChanged(it)
-            }
+            },
+            textStyle = TextStyle.Default.copy(
+                color = ColorConstant._848484
+            )
         )
 
         TextButton(

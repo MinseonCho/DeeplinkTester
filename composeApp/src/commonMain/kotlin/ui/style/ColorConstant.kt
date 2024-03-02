@@ -11,4 +11,5 @@ object ColorConstant {
     val _E2EFFB = Color(0xFFE2EFFB)
     val _E8E8E8 = Color(0xFFE8E8E8)
     val _FAFAFA = Color(0xFFFAFAFA)
+    val _848484 = Color(0xFF848484)
 }

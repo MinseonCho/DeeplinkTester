@@ -34,6 +34,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -42,13 +43,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
@@ -58,11 +59,12 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import ui.NavRailItem
 import ui.style.ColorConstant
+import ui.utils.CustomDialog
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PageScreen(
-    pageViewModel: PageViewModel
+    pageViewModel: PageViewModel,
 ) {
     val url by pageViewModel.urlUiState.collectAsState()
 
@@ -70,6 +72,16 @@ fun PageScreen(
     val snackBarHostState = remember { SnackbarHostState() }
 
     var selectedRailItem by remember { mutableIntStateOf(0) }
+
+    val showAdbAbsolutePathDialog by pageViewModel.showADBAbsolutePathDialog.collectAsState()
+
+    if (showAdbAbsolutePathDialog) {
+        showADBAbsolutePathDialog(
+            path = pageViewModel.adbAbsolutePath,
+            onConfirmButtonClicked = pageViewModel::onAdbPathDialogConfirmButtonClicked,
+            onDismissed = pageViewModel::onAdbPathDialogDismissed
+        )
+    }
 
     Row(
         modifier = Modifier
@@ -94,7 +106,7 @@ fun PageScreen(
                     selected = selectedRailItem == index,
                     onClick = {
                         selectedRailItem = index
-                        pageViewModel.onSettingsIconClicked()
+                        pageViewModel.onNavRailIconClicked(navRailItem = navRailItem)
                     }
                 )
             }
@@ -135,7 +147,7 @@ fun QueryContent(
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit,
     onCheckedChanged: (Int, Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
 
     Column(
@@ -172,7 +184,7 @@ fun QueryTable(
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit,
     onCheckedChanged: (Int, Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
@@ -203,7 +215,7 @@ fun QueryTable(
 
 @Composable
 fun QueryTableHeaderRow(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.height(IntrinsicSize.Min)
@@ -253,7 +265,7 @@ fun SingleQuery(
     onCheckedChanged: (Int, Boolean) -> Unit,
     onKeyChanged: (Int, String) -> Unit,
     onValueChanged: (Int, String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -274,7 +286,7 @@ fun SingleQuery(
 
         TableVerticalDivider()
 
-        QueryInputField(
+        InputField(
             text = queryItem.key,
             onValueChanged = {
                 onKeyChanged(position, it)
@@ -287,7 +299,7 @@ fun SingleQuery(
 
         TableVerticalDivider()
 
-        QueryInputField(
+        InputField(
             text = queryItem.value,
             onValueChanged = {
                 onValueChanged(position, it)
@@ -312,10 +324,12 @@ private fun TableVerticalDivider() {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun QueryInputField(
+fun InputField(
     text: String,
     onValueChanged: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isEnabled: Boolean = true,
+    isSingleLine: Boolean = true
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
@@ -331,18 +345,20 @@ fun QueryInputField(
             ).onFocusChanged {
                 isFocused = it.isFocused
             },
-        singleLine = true,
+        singleLine = isSingleLine,
         textStyle = TextStyle(
-            fontSize = TextUnit(12f, TextUnitType.Sp),
-            color = ColorConstant._848484
+            fontSize = 12.sp,
+            color = ColorConstant._848484,
+            lineHeight = 16.sp,
+            letterSpacing = 1.sp
         ),
     ) { innerTextField ->
         TextFieldDefaults.TextFieldDecorationBox(
             value = text,
             innerTextField = innerTextField,
             contentPadding = PaddingValues(10.dp),
-            singleLine = true,
-            enabled = true,
+            singleLine = isSingleLine,
+            enabled = isEnabled,
             interactionSource = interactionSource,
             visualTransformation = VisualTransformation.None,
             colors = TextFieldDefaults.textFieldColors(
@@ -352,5 +368,46 @@ fun QueryInputField(
                 cursorColor = Color.Black
             )
         )
+    }
+}
+
+@Composable
+private fun showADBAbsolutePathDialog(
+    path: String,
+    onConfirmButtonClicked: (String) -> Unit,
+    onDismissed: () -> Unit,
+) {
+    var pathString by remember { mutableStateOf(path) }
+    val focusRequester = remember { FocusRequester() }
+
+    CustomDialog(
+        title = {
+            Text(
+                text = "ADB 절대 경로를 입력해주세요. 👀",
+                fontWeight = FontWeight.Bold,
+                color = ColorConstant._848484
+            )
+        },
+        content = {
+            InputField(
+                text = pathString,
+                onValueChanged = {
+                    pathString = it
+                },
+                isSingleLine = false,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester)
+            )
+        },
+        onDismissButtonClicked = onDismissed,
+        onConfirmButtonClicked = {
+            onConfirmButtonClicked(pathString)
+        },
+        onDismissed = onDismissed
+    )
+
+    LaunchedEffect(true) {
+        focusRequester.requestFocus()
     }
 }

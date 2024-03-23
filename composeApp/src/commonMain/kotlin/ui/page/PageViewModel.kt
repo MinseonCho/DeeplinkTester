@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import model.QueryItem
+import ui.NavRailItem
 import util.clearAndAddAll
 
 class PageViewModel : BaseViewModel() {
@@ -19,6 +20,11 @@ class PageViewModel : BaseViewModel() {
 
     private val _queryList: MutableList<QueryItem> = mutableListOf()
     val queryList: List<QueryItem> = _queryList
+
+    val showADBAbsolutePathDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private var _adbAbsolutePath: String = ""
+    val adbAbsolutePath: String
+        get() = _adbAbsolutePath
 
     fun onUrlChanged(url: String) {
         this.urlUiState.value = url
@@ -80,7 +86,7 @@ class PageViewModel : BaseViewModel() {
 
     private fun generateNewUrlWith(
         originUrl: String,
-        newQueries: List<QueryItem>
+        newQueries: List<QueryItem>,
     ): String {
         val newUrlBuilder = URLBuilder(originUrl)
         // TODO: encode 고려 필요한지 체크
@@ -124,7 +130,19 @@ class PageViewModel : BaseViewModel() {
             }
     }
 
-    fun onSettingsIconClicked() {
-        // TODO: 설정 버튼 클릭 시 처리
+    fun onNavRailIconClicked(navRailItem: NavRailItem) {
+        when (navRailItem) {
+            NavRailItem.Settings -> {
+                showADBAbsolutePathDialog.value = true
+            }
+        }
+    }
+
+    fun onAdbPathDialogConfirmButtonClicked(adbAbsolutePath: String) {
+        _adbAbsolutePath = adbAbsolutePath
+    }
+
+    fun onAdbPathDialogDismissed() {
+        showADBAbsolutePathDialog.value = false
     }
 }

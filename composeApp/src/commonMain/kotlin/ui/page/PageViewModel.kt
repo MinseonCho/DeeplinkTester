@@ -1,5 +1,8 @@
 package ui.page
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import base.BaseViewModel
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.channels.Channel
@@ -13,7 +16,8 @@ import util.clearAndAddAll
 
 class PageViewModel : BaseViewModel() {
 
-    val urlUiState: MutableStateFlow<String> = MutableStateFlow("")
+    var urlUiState by mutableStateOf("")
+        private set
 
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
@@ -27,13 +31,13 @@ class PageViewModel : BaseViewModel() {
         get() = _adbAbsolutePath
 
     fun onUrlChanged(url: String) {
-        this.urlUiState.value = url
+        urlUiState = url
         parseUrlAndUpdateState(url = url)
     }
 
     fun onSendButtonClicked() {
         viewModelScope.launch {
-            _eventChannel.send(PageEvent.TriggerUrl(urlUiState.value))
+            _eventChannel.send(PageEvent.TriggerUrl(urlUiState))
         }
     }
 
@@ -78,8 +82,8 @@ class PageViewModel : BaseViewModel() {
             _queryList.add(QueryItem.generateEmptyQueryItem())
         }
 
-        urlUiState.value = generateNewUrlWith(
-            originUrl = urlUiState.value,
+        urlUiState = generateNewUrlWith(
+            originUrl = urlUiState,
             newQueries = _queryList
         )
     }

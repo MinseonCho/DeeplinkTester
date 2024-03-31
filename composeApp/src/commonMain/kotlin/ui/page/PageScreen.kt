@@ -66,8 +66,6 @@ import ui.utils.CustomDialog
 fun PageScreen(
     pageViewModel: PageViewModel,
 ) {
-    val url by pageViewModel.urlUiState.collectAsState()
-
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     val snackBarHostState = remember { SnackbarHostState() }
 
@@ -124,7 +122,7 @@ fun PageScreen(
             ) {
 
                 UrlField(
-                    url = url,
+                    url = pageViewModel.urlUiState,
                     onUrlChanged = pageViewModel::onUrlChanged,
                     onSendButtonClicked = pageViewModel::onSendButtonClicked
                 )

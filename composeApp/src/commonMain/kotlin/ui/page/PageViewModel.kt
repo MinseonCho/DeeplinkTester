@@ -21,7 +21,7 @@ class PageViewModel : BaseViewModel() {
     private val _queryList: MutableList<QueryItem> = mutableListOf()
     val queryList: List<QueryItem> = _queryList
 
-    val showADBAbsolutePathDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val showADBAbsolutePathDialog: MutableStateFlow<Boolean> = MutableStateFlow(true)
     private var _adbAbsolutePath: String = ""
     val adbAbsolutePath: String
         get() = _adbAbsolutePath

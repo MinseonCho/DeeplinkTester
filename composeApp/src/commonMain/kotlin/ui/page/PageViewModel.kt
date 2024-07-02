@@ -37,7 +37,7 @@ class PageViewModel : BaseViewModel() {
 
     fun onSendButtonClicked() {
         viewModelScope.launch {
-            _eventChannel.send(PageEvent.TriggerUrl(urlUiState))
+            _eventChannel.send(PageEvent.TriggerUrl(adbAbsolutePath, urlUiState))
         }
     }
 

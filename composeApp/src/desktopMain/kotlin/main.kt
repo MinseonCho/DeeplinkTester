@@ -19,7 +19,10 @@ fun main() = application {
             viewModel.eventFlow.collect { event ->
                 when (event) {
                     is PageEvent.TriggerUrl -> {
-                        triggerUrl(url = event.url)
+                        triggerUrl(
+                            absoluteAdbPath = event.absoluteAdbPath,
+                            url = event.url
+                        )
                     }
                 }
             }
@@ -33,11 +36,14 @@ fun main() = application {
     }
 }
 
-suspend fun triggerUrl(url: String) {
+suspend fun triggerUrl(
+    absoluteAdbPath: String,
+    url: String
+) {
     withContext(Dispatchers.IO) {
         runCatching {
             // TODO: string resource 분리
-            val command = "adb shell am start -a android.intent.action.VIEW -d $url"
+            val command = "$absoluteAdbPath shell am start -a android.intent.action.VIEW -d $url"
             Runtime.getRuntime().exec(command)
         }.onFailure {
             // TODO: 에러 처리

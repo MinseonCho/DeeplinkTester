@@ -19,20 +19,18 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.Checkbox
-import androidx.compose.material.CheckboxDefaults
-import androidx.compose.material.Divider
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.NavigationRail
-import androidx.compose.material.NavigationRailItem
-import androidx.compose.material.Scaffold
-import androidx.compose.material.ScaffoldState
-import androidx.compose.material.SnackbarHost
-import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,18 +53,14 @@ import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import model.QueryItem
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 import ui.NavRailItem
 import ui.style.ColorConstant
 import ui.utils.CustomDialog
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun PageScreen(
     pageViewModel: PageViewModel,
 ) {
-    val scaffoldState: ScaffoldState = rememberScaffoldState()
     val snackBarHostState = remember { SnackbarHostState() }
 
     var selectedRailItem by remember { mutableIntStateOf(0) }
@@ -87,7 +81,7 @@ fun PageScreen(
             .fillMaxSize()
     ) {
         NavigationRail(
-            backgroundColor = Color(0xFFF5F5F7),
+            containerColor = Color(0xFFF5F5F7),
             contentColor = Color(0xFFF5F5F7)
         ) {
             Spacer(Modifier.weight(1f))
@@ -95,7 +89,7 @@ fun PageScreen(
                 NavigationRailItem(
                     icon = {
                         Icon(
-                            painter = painterResource(navRailItem.iconRes),
+                            imageVector = navRailItem.iconRes,
                             contentDescription = navRailItem.description,
                             tint = Color(0xFF374957)
                         )
@@ -111,7 +105,6 @@ fun PageScreen(
         }
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            scaffoldState = scaffoldState,
             snackbarHost = { SnackbarHost(snackBarHostState) }
         ) {
             Column(
@@ -222,9 +215,6 @@ fun QueryTableHeaderRow(
             modifier = Modifier.width(50.dp), // checkBox width 는 고정
             checked = false,
             enabled = false,
-            colors = CheckboxDefaults.colors(
-                disabledColor = ColorConstant._E8E8E8
-            ),
             onCheckedChange = {}
         )
 
@@ -290,7 +280,7 @@ fun SingleQuery(
                 onKeyChanged(position, it)
             },
             modifier = Modifier
-                .padding(horizontal = 5.dp)
+                .padding(5.dp)
                 .weight(weight = 0.3f, fill = true)
                 .align(Alignment.CenterVertically)
         )
@@ -320,14 +310,14 @@ private fun TableVerticalDivider() {
     )
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InputField(
     text: String,
     onValueChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
     isEnabled: Boolean = true,
-    isSingleLine: Boolean = true
+    isSingleLine: Boolean = true,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
@@ -351,16 +341,17 @@ fun InputField(
             letterSpacing = 1.sp
         ),
     ) { innerTextField ->
-        TextFieldDefaults.TextFieldDecorationBox(
+        TextFieldDefaults.DecorationBox(
             value = text,
             innerTextField = innerTextField,
-            contentPadding = PaddingValues(10.dp),
-            singleLine = isSingleLine,
             enabled = isEnabled,
-            interactionSource = interactionSource,
+            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+            singleLine = isSingleLine,
             visualTransformation = VisualTransformation.None,
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color(0xfffaf7f7),
+            interactionSource = interactionSource,
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color(0xfffaf7f7),
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 cursorColor = Color.Black

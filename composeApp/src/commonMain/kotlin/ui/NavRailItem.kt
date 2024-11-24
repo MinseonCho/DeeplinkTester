@@ -1,8 +1,12 @@
 package ui
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.graphics.vector.ImageVector
+
 enum class NavRailItem(
-    val iconRes: String,
+    val iconRes: ImageVector,
     val description: String
 ) {
-    Settings("drawable/ic_settings.xml", "Settings")
+    Settings(Icons.Default.Settings, "Settings")
 }

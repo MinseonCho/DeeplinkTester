@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -82,7 +83,8 @@ fun PageScreen(
     ) {
         NavigationRail(
             containerColor = Color(0xFFF5F5F7),
-            contentColor = Color(0xFFF5F5F7)
+            contentColor = Color(0xFFF5F5F7),
+            modifier = Modifier.width(50.dp)
         ) {
             Spacer(Modifier.weight(1f))
             NavRailItem.entries.forEachIndexed { index, navRailItem ->
@@ -91,7 +93,8 @@ fun PageScreen(
                         Icon(
                             imageVector = navRailItem.iconRes,
                             contentDescription = navRailItem.description,
-                            tint = Color(0xFF374957)
+                            tint = Color(0xFF374957),
+                            modifier = Modifier.size(20.dp)
                         )
                     },
                     label = null,
@@ -99,7 +102,7 @@ fun PageScreen(
                     onClick = {
                         selectedRailItem = index
                         pageViewModel.onNavRailIconClicked(navRailItem = navRailItem)
-                    }
+                    },
                 )
             }
         }

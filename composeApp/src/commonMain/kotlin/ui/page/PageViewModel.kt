@@ -7,11 +7,9 @@ import base.BaseViewModel
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import model.QueryItem
-import ui.NavRailItem
 import util.clearAndAddAll
 
 class PageViewModel : BaseViewModel() {
@@ -25,11 +23,6 @@ class PageViewModel : BaseViewModel() {
     private val _queryList: MutableList<QueryItem> = mutableListOf()
     val queryList: List<QueryItem> = _queryList
 
-    val showADBAbsolutePathDialog: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    private var _adbAbsolutePath: String = ""
-    val adbAbsolutePath: String
-        get() = _adbAbsolutePath
-
     fun onUrlChanged(url: String) {
         urlUiState = url
         parseUrlAndUpdateState(url = url)
@@ -37,7 +30,7 @@ class PageViewModel : BaseViewModel() {
 
     fun onSendButtonClicked() {
         viewModelScope.launch {
-            _eventChannel.send(PageEvent.TriggerUrl(adbAbsolutePath, urlUiState))
+            _eventChannel.send(PageEvent.TriggerUrl(urlUiState))
         }
     }
 
@@ -132,21 +125,5 @@ class PageViewModel : BaseViewModel() {
                     value = value
                 )
             }
-    }
-
-    fun onNavRailIconClicked(navRailItem: NavRailItem) {
-        when (navRailItem) {
-            NavRailItem.Settings -> {
-                showADBAbsolutePathDialog.value = true
-            }
-        }
-    }
-
-    fun onAdbPathDialogConfirmButtonClicked(adbAbsolutePath: String) {
-        _adbAbsolutePath = adbAbsolutePath
-    }
-
-    fun onAdbPathDialogDismissed() {
-        showADBAbsolutePathDialog.value = false
     }
 }

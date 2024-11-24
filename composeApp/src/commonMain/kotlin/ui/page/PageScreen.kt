@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -24,9 +23,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -34,16 +30,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -54,83 +46,50 @@ import androidx.compose.ui.unit.sp
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import model.QueryItem
-import ui.NavRailItem
 import ui.style.ColorConstant
-import ui.utils.CustomDialog
 
 @Composable
 fun PageScreen(
-    pageViewModel: PageViewModel,
+    onSendDeeplinkClicked: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    pageViewModel: PageViewModel = PageViewModel(),
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
 
-    var selectedRailItem by remember { mutableIntStateOf(0) }
-
-    val showAdbAbsolutePathDialog by pageViewModel.showADBAbsolutePathDialog.collectAsState()
-
-    if (showAdbAbsolutePathDialog) {
-        showADBAbsolutePathDialog(
-            path = pageViewModel.adbAbsolutePath,
-            onConfirmButtonClicked = pageViewModel::onAdbPathDialogConfirmButtonClicked,
-            onDismissed = pageViewModel::onAdbPathDialogDismissed
-        )
-    }
-
-    Row(
-        modifier = Modifier
-            .background(Color(0xFFF5F5F7))
-            .fillMaxSize()
-    ) {
-        NavigationRail(
-            containerColor = Color(0xFFF5F5F7),
-            contentColor = Color(0xFFF5F5F7),
-            modifier = Modifier.width(50.dp)
-        ) {
-            Spacer(Modifier.weight(1f))
-            NavRailItem.entries.forEachIndexed { index, navRailItem ->
-                NavigationRailItem(
-                    icon = {
-                        Icon(
-                            imageVector = navRailItem.iconRes,
-                            contentDescription = navRailItem.description,
-                            tint = Color(0xFF374957),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    },
-                    label = null,
-                    selected = selectedRailItem == index,
-                    onClick = {
-                        selectedRailItem = index
-                        pageViewModel.onNavRailIconClicked(navRailItem = navRailItem)
-                    },
-                )
+    LaunchedEffect(Unit) {
+        pageViewModel.eventFlow.collect { event ->
+            when (event) {
+                is PageEvent.TriggerUrl -> {
+                    onSendDeeplinkClicked(event.url)
+                }
             }
         }
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            snackbarHost = { SnackbarHost(snackBarHostState) }
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackBarHostState) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF5F5F7))
+                .padding(top = 30.dp, end = 15.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFF5F5F7))
-                    .padding(top = 30.dp, end = 15.dp)
-            ) {
 
-                UrlField(
-                    url = pageViewModel.urlUiState,
-                    onUrlChanged = pageViewModel::onUrlChanged,
-                    onSendButtonClicked = pageViewModel::onSendButtonClicked
-                )
+            UrlField(
+                url = pageViewModel.urlUiState,
+                onUrlChanged = pageViewModel::onUrlChanged,
+                onSendButtonClicked = pageViewModel::onSendButtonClicked
+            )
 
-                QueryContent(
-                    queries = pageViewModel.queryList.toImmutableList(),
-                    onKeyChanged = pageViewModel::onQueryKeyChanged,
-                    onValueChanged = pageViewModel::onQueryValueChanged,
-                    onCheckedChanged = pageViewModel::onCheckedChanged,
-                    modifier = Modifier.fillMaxHeight()
-                )
-            }
+            QueryContent(
+                queries = pageViewModel.queryList.toImmutableList(),
+                onKeyChanged = pageViewModel::onQueryKeyChanged,
+                onValueChanged = pageViewModel::onQueryValueChanged,
+                onCheckedChanged = pageViewModel::onCheckedChanged,
+                modifier = Modifier.fillMaxHeight()
+            )
         }
     }
 }
@@ -360,46 +319,5 @@ fun InputField(
                 cursorColor = Color.Black
             )
         )
-    }
-}
-
-@Composable
-private fun showADBAbsolutePathDialog(
-    path: String,
-    onConfirmButtonClicked: (String) -> Unit,
-    onDismissed: () -> Unit,
-) {
-    var pathString by remember { mutableStateOf(path) }
-    val focusRequester = remember { FocusRequester() }
-
-    CustomDialog(
-        title = {
-            Text(
-                text = "ADB 절대 경로를 입력해주세요. 👀",
-                fontWeight = FontWeight.Bold,
-                color = ColorConstant._848484
-            )
-        },
-        content = {
-            InputField(
-                text = pathString,
-                onValueChanged = {
-                    pathString = it
-                },
-                isSingleLine = false,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-            )
-        },
-        onDismissButtonClicked = onDismissed,
-        onConfirmButtonClicked = {
-            onConfirmButtonClicked(pathString)
-        },
-        onDismissed = onDismissed
-    )
-
-    LaunchedEffect(true) {
-        focusRequester.requestFocus()
     }
 }

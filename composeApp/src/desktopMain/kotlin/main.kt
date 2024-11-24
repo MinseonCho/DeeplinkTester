@@ -1,4 +1,5 @@
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,6 +46,7 @@ fun main() = application {
         }
         var showAdbAbsolutePathDialog by remember { mutableStateOf(false) }
         val coroutineScope = rememberCoroutineScope()
+        val navController = rememberNavController()
 
         LaunchedEffect(Unit) {
             viewModel.eventFlow.collect { event ->
@@ -87,16 +92,30 @@ fun main() = application {
                     }
                 }
 
-                PageScreen(
-                    onSendDeeplinkClicked = { url ->
-                        coroutineScope.launch {
-                            triggerUrl(
-                                absoluteAdbPath = viewModel.adbAbsolutePath,
-                                url = url
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = NavDestination.Page.route
+                    ) {
+                        composable(route = NavDestination.Page.route) {
+                            PageScreen(
+                                onSendDeeplinkClicked = { url ->
+                                    coroutineScope.launch {
+                                        triggerUrl(
+                                            absoluteAdbPath = viewModel.adbAbsolutePath,
+                                            url = url
+                                        )
+                                    }
+                                }
                             )
                         }
+
+                        composable(route = NavDestination.History.route) {
+                        }
                     }
-                )
+                }
             }
         }
 
@@ -106,7 +125,7 @@ fun main() = application {
                 onConfirmButtonClicked = viewModel::onAdbPathDialogConfirmButtonClicked,
                 onDismissed = {
                     showAdbAbsolutePathDialog = false
-                }
+                },
             )
         }
     }

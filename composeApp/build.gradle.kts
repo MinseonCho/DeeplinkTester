@@ -48,6 +48,7 @@ kotlin {
             implementation(compose.runtime)
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.collections.immutable)
+            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha07")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

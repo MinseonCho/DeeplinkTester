@@ -3,7 +3,8 @@ package ui.page
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import base.BaseViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import io.ktor.http.URLBuilder
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
 import model.QueryItem
 import util.clearAndAddAll
 
-class PageViewModel : BaseViewModel() {
+class PageViewModel : ViewModel() {
 
     var urlUiState by mutableStateOf("")
         private set

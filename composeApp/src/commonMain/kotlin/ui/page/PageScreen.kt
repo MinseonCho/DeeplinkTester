@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import model.QueryItem
@@ -52,7 +53,7 @@ import ui.style.ColorConstant
 fun PageScreen(
     onSendDeeplinkClicked: (String) -> Unit,
     modifier: Modifier = Modifier,
-    pageViewModel: PageViewModel = PageViewModel(),
+    pageViewModel: PageViewModel = viewModel { PageViewModel() },
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
 

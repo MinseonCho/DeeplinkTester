@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +47,8 @@ fun main() = application {
             MainViewModel()
         }
         var showAdbAbsolutePathDialog by remember { mutableStateOf(false) }
+        var showErrorDialog by remember { mutableStateOf(false) }
+        var errorMessage by remember { mutableStateOf("") }
         val coroutineScope = rememberCoroutineScope()
         val navController = rememberNavController()
 
@@ -105,7 +109,11 @@ fun main() = application {
                                     coroutineScope.launch {
                                         triggerUrl(
                                             absoluteAdbPath = viewModel.adbAbsolutePath,
-                                            url = url
+                                            url = url,
+                                            onError = { errorMsg ->
+                                                errorMessage = errorMsg
+                                                showErrorDialog = true
+                                            }
                                         )
                                     }
                                 }
@@ -117,31 +125,74 @@ fun main() = application {
                     }
                 }
             }
-        }
 
-        if (showAdbAbsolutePathDialog) {
-            showADBAbsolutePathDialog(
-                path = viewModel.adbAbsolutePath,
-                onConfirmButtonClicked = viewModel::onAdbPathDialogConfirmButtonClicked,
-                onDismissed = {
-                    showAdbAbsolutePathDialog = false
-                },
-            )
+            if (showErrorDialog) {
+                AlertDialog(
+                    onDismissRequest = { showErrorDialog = false },
+                    title = {
+                        Text(
+                            text = "Error",
+                            fontWeight = FontWeight.Bold,
+                            color = ColorConstant._E6A358
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = errorMessage,
+                            color = ColorConstant._848484
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = { showErrorDialog = false }
+                        ) {
+                            Text(
+                                text = "OK",
+                                fontWeight = FontWeight.Bold,
+                                color = ColorConstant._E6A358
+                            )
+                        }
+                    },
+                    containerColor = Color.White
+                )
+            }
+
+            if (showAdbAbsolutePathDialog) {
+                showADBAbsolutePathDialog(
+                    path = viewModel.adbAbsolutePath,
+                    onConfirmButtonClicked = viewModel::onAdbPathDialogConfirmButtonClicked,
+                    onDismissed = {
+                        showAdbAbsolutePathDialog = false
+                    },
+                )
+            }
         }
     }
 }
 
 suspend fun triggerUrl(
     absoluteAdbPath: String,
-    url: String
+    url: String,
+    onError: (String) -> Unit
 ) {
     withContext(Dispatchers.IO) {
         runCatching {
-            // TODO: string resource 분리
-            val command = "$absoluteAdbPath shell am start -a android.intent.action.VIEW -d $url"
-            Runtime.getRuntime().exec(command)
-        }.onFailure {
-            // TODO: 에러 처리
+            val command = "$absoluteAdbPath shell am start -a android.intent.action.VIEW -d \"$url\""
+            val process = Runtime.getRuntime().exec(command)
+            
+            val errorStream = process.errorStream.bufferedReader().use { it.readText() }
+            if (errorStream.isNotEmpty()) {
+                throw Exception(errorStream)
+            }
+            
+            val exitCode = process.waitFor()
+            if (exitCode != 0) {
+                throw Exception("Command failed with exit code: $exitCode")
+            }
+        }.onFailure { throwable ->
+            withContext(Dispatchers.Main) {
+                onError(throwable.message ?: "알 수 없는 오류가 발생했습니다.")
+            }
         }
     }
 }

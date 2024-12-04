@@ -15,6 +15,9 @@ class MainViewModel : BaseViewModel() {
 
     fun onNavItemClicked(navItem: NavigationItem) {
         when (navItem) {
+            NavigationItem.Page -> {
+                _eventChannel.trySend(MainEvent.ShowPage)
+            }
             NavigationItem.Settings -> {
                 _eventChannel.trySend(
                     MainEvent.ShowAdbPathDialog(

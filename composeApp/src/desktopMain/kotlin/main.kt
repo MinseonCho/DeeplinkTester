@@ -55,6 +55,14 @@ fun main() = application {
         LaunchedEffect(Unit) {
             viewModel.eventFlow.collect { event ->
                 when (event) {
+                    MainEvent.ShowPage -> {
+                        if (navController.currentDestination?.route != NavDestination.Page.route) {
+                            navController.navigate(
+                                route = NavDestination.Page.route
+                            )
+                        }
+                    }
+
                     is MainEvent.ShowAdbPathDialog -> {
                         showAdbAbsolutePathDialog = true
                     }
@@ -87,7 +95,7 @@ fun main() = application {
                                 )
                             },
                             label = null,
-                            selected = selectedRailItem == index,
+                            selected = false,
                             onClick = {
                                 selectedRailItem = index
                                 viewModel.onNavItemClicked(navItem = navItem)

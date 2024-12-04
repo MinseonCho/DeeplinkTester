@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import io.ktor.http.decodeURLPart
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -17,6 +19,7 @@ class PageViewModel : ViewModel() {
 
     var urlUiState by mutableStateOf("")
         private set
+    private var urlState: String = ""
 
     private val _eventChannel = Channel<PageEvent>(capacity = Channel.BUFFERED)
     val eventFlow: Flow<PageEvent> = _eventChannel.receiveAsFlow()
@@ -26,12 +29,13 @@ class PageViewModel : ViewModel() {
 
     fun onUrlChanged(url: String) {
         urlUiState = url
+        urlState = url
         parseUrlAndUpdateState(url = url)
     }
 
     fun onSendButtonClicked() {
         viewModelScope.launch {
-            _eventChannel.send(PageEvent.TriggerUrl(urlUiState))
+            _eventChannel.send(PageEvent.TriggerUrl(urlState))
         }
     }
 
@@ -76,18 +80,18 @@ class PageViewModel : ViewModel() {
             _queryList.add(QueryItem.generateEmptyQueryItem())
         }
 
-        urlUiState = generateNewUrlWith(
+        urlState = generateNewUrlWith(
             originUrl = urlUiState,
             newQueries = _queryList
-        )
+        ).toString()
+        urlUiState = urlState.decodeURLPart() // ui state 에는 decode 된 url 노출
     }
 
     private fun generateNewUrlWith(
         originUrl: String,
         newQueries: List<QueryItem>,
-    ): String {
+    ): Url {
         val newUrlBuilder = URLBuilder(originUrl)
-        // TODO: encode 고려 필요한지 체크
         newUrlBuilder
             .parameters
             .clear()
@@ -96,7 +100,7 @@ class PageViewModel : ViewModel() {
             newUrlBuilder.parameters.append(query.key, query.value)
         }
 
-        return newUrlBuilder.buildString()
+        return newUrlBuilder.build()
     }
 
     private fun parseQueryParameters(url: String): List<QueryItem> {

@@ -7,16 +7,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,6 +31,7 @@ import androidx.compose.ui.window.application
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -47,8 +47,8 @@ fun main() = application {
             MainViewModel()
         }
         var showAdbAbsolutePathDialog by remember { mutableStateOf(false) }
-        var showErrorDialog by remember { mutableStateOf(false) }
-        var errorMessage by remember { mutableStateOf("") }
+        val sendLogMaxSize = 30
+        val sendLogTexts = remember { mutableStateListOf<String>() }
         val coroutineScope = rememberCoroutineScope()
         val navController = rememberNavController()
 
@@ -119,12 +119,15 @@ fun main() = application {
                                             absoluteAdbPath = viewModel.adbAbsolutePath,
                                             url = url,
                                             onError = { errorMsg ->
-                                                errorMessage = errorMsg
-                                                showErrorDialog = true
+                                                sendLogTexts.add(errorMsg)
+                                                if (sendLogTexts.size > sendLogMaxSize) {
+                                                    sendLogTexts.removeFirstOrNull()
+                                                }
                                             }
                                         )
                                     }
-                                }
+                                },
+                                sendLogTexts = sendLogTexts.toImmutableList()
                             )
                         }
 
@@ -132,37 +135,6 @@ fun main() = application {
                         }
                     }
                 }
-            }
-
-            if (showErrorDialog) {
-                AlertDialog(
-                    onDismissRequest = { showErrorDialog = false },
-                    title = {
-                        Text(
-                            text = "Error",
-                            fontWeight = FontWeight.Bold,
-                            color = ColorConstant._E6A358
-                        )
-                    },
-                    text = {
-                        Text(
-                            text = errorMessage,
-                            color = ColorConstant._848484
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = { showErrorDialog = false }
-                        ) {
-                            Text(
-                                text = "OK",
-                                fontWeight = FontWeight.Bold,
-                                color = ColorConstant._E6A358
-                            )
-                        }
-                    },
-                    containerColor = Color.White
-                )
             }
 
             if (showAdbAbsolutePathDialog) {

@@ -3,6 +3,7 @@ package ui.page
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,8 +18,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
@@ -53,6 +56,7 @@ import ui.style.ColorConstant
 fun PageScreen(
     onSendDeeplinkClicked: (String) -> Unit,
     modifier: Modifier = Modifier,
+    sendLogTexts: ImmutableList<String>,
     pageViewModel: PageViewModel = viewModel { PageViewModel() },
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
@@ -74,7 +78,7 @@ fun PageScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F5F7))
+                .background(ColorConstant._F5F5F7)
                 .padding(top = 30.dp, end = 15.dp)
         ) {
 
@@ -84,12 +88,21 @@ fun PageScreen(
                 onSendButtonClicked = pageViewModel::onSendButtonClicked
             )
 
+            Spacer(modifier = Modifier.height(5.dp))
+
             QueryContent(
                 queries = pageViewModel.queryList.toImmutableList(),
                 onKeyChanged = pageViewModel::onQueryKeyChanged,
                 onValueChanged = pageViewModel::onQueryValueChanged,
                 onCheckedChanged = pageViewModel::onCheckedChanged,
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(5.dp))
+
+            LogBody(
+                logTexts = sendLogTexts,
+                modifier = Modifier.fillMaxSize()
             )
         }
     }
@@ -129,6 +142,51 @@ fun QueryContent(
             onValueChanged = onValueChanged,
             onCheckedChanged = onCheckedChanged
         )
+    }
+}
+
+@Composable
+fun LogBody(
+    logTexts: ImmutableList<String>,
+    modifier: Modifier = Modifier,
+) {
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(color = Color.White)
+            .padding(10.dp)
+    ) {
+        Text(
+            modifier = Modifier
+                .background(
+                    color = ColorConstant._E8F3E7,
+                    shape = RoundedCornerShape(4.dp)
+                ).padding(horizontal = 6.dp, vertical = 3.dp),
+            text = "Log",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = ColorConstant._79AD73,
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .background(color = ColorConstant._F5F5F7)
+                .padding(10.dp)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Text(
+                text = logTexts.joinToString("\n"),
+                color = ColorConstant._848484,
+                fontWeight = FontWeight.Normal,
+                fontSize = 11.sp,
+                lineHeight = 14.sp
+            )
+        }
     }
 }
 

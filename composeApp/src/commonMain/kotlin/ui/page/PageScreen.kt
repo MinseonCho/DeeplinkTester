@@ -80,6 +80,7 @@ fun PageScreen(
                 .fillMaxSize()
                 .background(ColorConstant._F5F5F7)
                 .padding(top = 30.dp, end = 15.dp)
+                .verticalScroll(rememberScrollState())
         ) {
 
             UrlField(
@@ -202,6 +203,7 @@ fun QueryTable(
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
+            .height(200.dp)
             .border(width = 1.dp, color = ColorConstant._E8E8E8),
         state = listState
     ) {
@@ -218,9 +220,7 @@ fun QueryTable(
                 onKeyChanged = onKeyChanged,
                 onValueChanged = onValueChanged
             )
-            if (queries.lastIndex > index) {
-                Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
-            }
+            Divider(color = ColorConstant._E8E8E8, modifier = Modifier.height(1.dp))
         }
     }
 }

@@ -2,6 +2,8 @@ import base.BaseViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
+import platform.AdbPathFinder
 import ui.NavigationItem
 
 class MainViewModel : BaseViewModel() {
@@ -12,6 +14,10 @@ class MainViewModel : BaseViewModel() {
     private var _adbAbsolutePath: String = ""
     val adbAbsolutePath: String
         get() = _adbAbsolutePath
+
+    init {
+        findAdbPath()
+    }
 
     fun onNavItemClicked(navItem: NavigationItem) {
         when (navItem) {
@@ -30,5 +36,18 @@ class MainViewModel : BaseViewModel() {
 
     fun onAdbPathDialogConfirmButtonClicked(adbAbsolutePath: String) {
         _adbAbsolutePath = adbAbsolutePath
+    }
+
+    private fun findAdbPath() {
+        val adbPath = AdbPathFinder.findAdbPath()
+        if (adbPath != null) {
+            _adbAbsolutePath = adbPath
+            println("Found ADB path: $_adbAbsolutePath")
+        } else {
+            println("Failed to find ADB path")
+            viewModelScope.launch {
+                _eventChannel.send(MainEvent.ShowAdbPathDialog(adbAbsolutePath))
+            }
+        }
     }
 }

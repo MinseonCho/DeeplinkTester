@@ -1,5 +1,7 @@
 package platform
 
+import model.AdbDevice
+
 actual object AdbPathFinder {
     actual fun findAdbPath(): String? {
         return runCatching {
@@ -15,5 +17,23 @@ actual object AdbPathFinder {
                 null
             }
         }.getOrNull()
+    }
+
+    actual fun getDevices(adbPath: String): List<AdbDevice> {
+        return runCatching {
+            val process = Runtime.getRuntime().exec("$adbPath devices -l")
+            val output = process.inputStream.bufferedReader().use { it.readText() }
+            
+            output.lines()
+                .drop(1) // 첫 줄은 "List of devices attached" 이므로 제외
+                .filter { it.isNotBlank() }
+                .map { line ->
+                    val parts = line.trim().split(Regex("\\s+"))
+                    AdbDevice(
+                        id = parts[0],
+                        description = parts.drop(1).joinToString(" ")
+                    )
+                }
+        }.getOrDefault(emptyList())
     }
 } 

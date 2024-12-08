@@ -17,14 +17,16 @@ class MainViewModel : BaseViewModel() {
     val adbAbsolutePath: String
         get() = _adbAbsolutePath
 
-    private var selectedDevice: AdbDevice? = null
+    private var _selectedDevice: AdbDevice? = null
+    val selectedDevice: AdbDevice?
+        get() = _selectedDevice
     private val _devices = mutableStateMapOf<String, AdbDevice>()
     val devices: List<AdbDevice>
         get() = _devices.values.toList()
 
     init {
-        findAdbPath()
-        refreshDevices()
+        initAdbPath()
+        initAdbDevices()
     }
 
     fun onNavItemClicked(navItem: NavigationItem) {
@@ -33,11 +35,7 @@ class MainViewModel : BaseViewModel() {
                 _eventChannel.trySend(MainEvent.ShowPage)
             }
             NavigationItem.Settings -> {
-                _eventChannel.trySend(
-                    MainEvent.ShowAdbPathDialog(
-                        currentPath = adbAbsolutePath
-                    )
-                )
+                _eventChannel.trySend(MainEvent.ShowAdbPathDialog)
             }
         }
     }
@@ -46,7 +44,7 @@ class MainViewModel : BaseViewModel() {
         _adbAbsolutePath = adbAbsolutePath
     }
 
-    private fun findAdbPath() {
+    private fun initAdbPath() {
         val adbPath = AdbPathFinder.findAdbPath()
         if (adbPath != null) {
             _adbAbsolutePath = adbPath
@@ -54,23 +52,37 @@ class MainViewModel : BaseViewModel() {
         } else {
             println("Failed to find ADB path")
             viewModelScope.launch {
-                _eventChannel.send(MainEvent.ShowAdbPathDialog(adbAbsolutePath))
+                _eventChannel.send(MainEvent.ShowAdbPathDialog)
             }
         }
     }
 
     fun onDeviceSelected(device: AdbDevice) {
-        selectedDevice?.let {
+        _selectedDevice?.let {
             _devices[it.id] = it.copy(isSelected = false)
         }
         _devices[device.id] = device.copy(isSelected = true)
-        selectedDevice = device
+        _selectedDevice = device
     }
 
-    private fun refreshDevices() {
+    private fun initAdbDevices() {
+        val devices = AdbPathFinder.getDevices(adbAbsolutePath).associateBy { it.id }
         _devices.clear()
-        _devices.putAll(
-            AdbPathFinder.getDevices(adbAbsolutePath).associateBy { it.id }
-        )
+
+        if (devices.isNotEmpty()) {
+            _devices.putAll(
+                AdbPathFinder.getDevices(adbAbsolutePath).associateBy { it.id }
+            )
+            val firstDevice = _devices.toList().first().second
+                .copy(isSelected = true) // 첫 번째 아이템 기본적으로 선택되게 설정
+            _devices[firstDevice.id] = firstDevice
+            _selectedDevice = firstDevice
+        }
+
+        if (devices.size > 1) {
+            viewModelScope.launch {
+                _eventChannel.send(MainEvent.ShowAdbPathDialog)
+            }
+        }
     }
 }

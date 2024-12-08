@@ -129,6 +129,7 @@ fun main() = application {
                                     coroutineScope.launch {
                                         triggerUrl(
                                             absoluteAdbPath = viewModel.adbAbsolutePath,
+                                            adbDevice = viewModel.selectedDevice,
                                             url = url,
                                             onError = { errorMsg ->
                                                 sendLogTexts.add(errorMsg)
@@ -166,14 +167,19 @@ fun main() = application {
 
 suspend fun triggerUrl(
     absoluteAdbPath: String,
+    adbDevice: AdbDevice?,
     url: String,
     onError: (String) -> Unit
 ) {
     withContext(Dispatchers.IO) {
         runCatching {
-            val command = "$absoluteAdbPath shell am start -a android.intent.action.VIEW -d \"$url\""
+            val command = if (adbDevice == null) {
+                "$absoluteAdbPath shell am start -a android.intent.action.VIEW -d \"$url\""
+            } else {
+                "$absoluteAdbPath -s ${adbDevice.id} shell am start -a android.intent.action.VIEW -d \"$url\""
+            }
             val process = Runtime.getRuntime().exec(command)
-            
+
             val errorStream = process.errorStream.bufferedReader().use { it.readText() }
             if (errorStream.isNotEmpty()) {
                 throw Exception(errorStream)
